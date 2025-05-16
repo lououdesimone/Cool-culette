@@ -1,0 +1,190 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cool-culette</title>
+  <style>
+    body {
+      font-family:roboto;
+      background-color: #121212;
+      color: white;
+      margin: 10px;
+      padding: 0;
+      font-size: 18px;
+      line-height: 1.5;
+    }
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      color: #00BFFF;
+      margin-top: 20px;
+    }
+.action-button {
+  display: block;
+  width: 90%;
+  max-width: 500px;
+  margin: 12px auto;
+  padding: 14px;
+  background-color: #00BFFF;
+  color: white;
+  font-weight: bold;
+  font-size: 17px;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,191,255,0.2);
+}
+    input {
+  width: 90%;
+  max-width: 500px;
+  display: block;
+  margin: 10px auto;
+  padding: 10px 14px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: none;
+  background-color: #1f1f1f;
+  color: white;
+  font-weight: bold;
+}
+    .formulaire, .result {
+      margin-top: 20px;
+    }
+    .result {
+      background-color: #1e1e1e;
+      padding: 15px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Coolculette</h1>
+  <button class="action-button" onclick="showForm('autonomie')">Calcul d'autonomie</button>
+  <button class="action-button" onclick="showForm('decollage')">Pression de décollage</button>
+  <button class="action-button" onclick="showForm('demitour')">Pression de demi-tour</button>
+  <button class="action-button" onclick="showForm('consoMoy')">Volume moyen consommé</button>
+  <button class="action-button" onclick="showForm('boyle')">Loi de Boyle-Mariotte</button>
+
+  <div id="formulaire" class="formulaire"></div>
+  <div id="resultat" class="result"></div>
+
+  <script>
+    function showForm(type) {
+      const form = document.getElementById("formulaire");
+      const res = document.getElementById("resultat");
+      res.innerHTML = "";
+      if (type === 'autonomie') {
+        form.innerHTML = `
+          <h3>Autonomie utile</h3>
+          <input type="number" id="pUtil" placeholder="Pression utilisable (bar)">
+          <input type="number" id="volBouteille" placeholder="Volume de la bouteille (L)">
+          <input type="number" id="conso" placeholder="Consommation d'air (L/min)">
+          <input type="number" id="prof" placeholder="Profondeur moyenne (m)">
+          <button class="action-button" onclick="calculAutonomie()">Calculer</button>
+        `;
+      } else if (type === 'decollage') {
+        form.innerHTML = `
+          <h3>Pression de décollage</h3>
+          <input type="number" id="pressionMoy" placeholder="Pression moyenne (bar)">
+          <input type="number" id="conso" placeholder="Conso d'air (L/min)">
+          <input type="number" id="dtr" placeholder="Durée totale de remontée (min)">
+          <input type="number" id="volume" placeholder="Volume de la bouteille (L)">
+          <button class="action-button" onclick="calculDecollage()">Calculer</button>
+        `;
+      } else if (type === 'demitour') {
+        form.innerHTML = `
+          <h3>Pression de demi-tour</h3>
+          <input type="number" id="pDepart" placeholder="Pression de départ (bar)">
+          <input type="number" id="pDecollage" placeholder="Pression de décollage (bar)">
+          <button class="action-button" onclick="calculDemiTour()">Calculer</button>
+        `;
+      } else if (type === 'consoMoy') {
+        form.innerHTML = `
+          <h3>Volume moyen consommé</h3>
+          <input type="number" id="pStart" placeholder="Pression départ (bar)">
+          <input type="number" id="pEnd" placeholder="Pression arrivée (bar)">
+          <input type="number" id="volume" placeholder="Volume de la bouteille (L)">
+          <input type="number" id="duree" placeholder="Durée de la plongée (min)">
+          <input type="number" id="profondeur" placeholder="Profondeur moyenne (m)">
+          <button class="action-button" onclick="calculConsoMoy()">Calculer</button>
+        `;
+      } else if (type === 'boyle') {
+        form.innerHTML = `
+          <h3>Loi de Boyle-Mariotte</h3>
+          <input type="number" id="p1" placeholder="Pression initiale P1 (bar)">
+          <input type="number" id="v1" placeholder="Volume initial V1 (L)">
+          <input type="number" id="p2" placeholder="Pression finale P2 (bar)">
+          <button class="action-button" onclick="calculBoyle()">Calculer</button>
+        `;
+      }
+    }
+
+    function calculAutonomie() {
+      const pUtil = parseFloat(document.getElementById("pUtil").value);
+      const vol = parseFloat(document.getElementById("volBouteille").value);
+      const conso = parseFloat(document.getElementById("conso").value);
+      const prof = parseFloat(document.getElementById("prof").value);
+      const pa = (prof + 10) / 10;
+      const volumeDispo = pUtil * vol;
+      const consoReelle = conso * pa;
+      const temps = volumeDispo / consoReelle;
+      document.getElementById("resultat").innerHTML = `
+        <strong>Volume utilisable :</strong> ${volumeDispo.toFixed(1)} L<br>
+        <strong>Consommation réelle à ${prof} m :</strong> ${consoReelle.toFixed(1)} L/min<br>
+        <strong>Autonomie estimée :</strong> ${temps.toFixed(1)} min
+      `;
+    }
+
+    function calculDecollage() {
+      const pMoy = parseFloat(document.getElementById("pressionMoy").value);
+      const conso = parseFloat(document.getElementById("conso").value);
+      const dtr = parseFloat(document.getElementById("dtr").value);
+      const vol = parseFloat(document.getElementById("volume").value);
+      const total = (pMoy * conso * dtr) / vol + 50;
+      document.getElementById("resultat").innerHTML = `
+        <strong>Calcul :</strong> (${pMoy} × ${conso} × ${dtr}) / ${vol} + 50<br>
+        <strong>Pression de décollage :</strong> ${total.toFixed(1)} bar
+      `;
+    }
+
+    function calculDemiTour() {
+      const pDep = parseFloat(document.getElementById("pDepart").value);
+      const pDec = parseFloat(document.getElementById("pDecollage").value);
+      const demi = (pDep - pDec) / 2;
+      const pDT = pDep - demi;
+      document.getElementById("resultat").innerHTML = `
+        <strong>Différence :</strong> (${pDep} - ${pDec}) / 2 = ${demi.toFixed(1)} bar<br>
+        <strong>Pression de demi-tour :</strong> ${pDT.toFixed(1)} bar
+      `;
+    }
+
+    function calculConsoMoy() {
+      const pStart = parseFloat(document.getElementById("pStart").value);
+      const pEnd = parseFloat(document.getElementById("pEnd").value);
+      const vol = parseFloat(document.getElementById("volume").value);
+      const duree = parseFloat(document.getElementById("duree").value);
+      const profondeur = parseFloat(document.getElementById("profondeur").value);
+      const pressionAmb = (profondeur / 10) + 1;
+      const conso = ((pStart - pEnd) * vol) / (duree * pressionAmb);
+      const totalVolume = (pStart - pEnd) * vol;
+      document.getElementById("resultat").innerHTML = `
+        <strong>Volume consommé :</strong> (${pStart} - ${pEnd}) × ${vol} = ${totalVolume.toFixed(1)} L<br>
+        <strong>Pression ambiante moyenne :</strong> ${pressionAmb.toFixed(2)} bar<br>
+        <strong>Consommation moyenne :</strong> ${conso.toFixed(1)} L/min
+      `;
+    }
+
+    function calculBoyle() {
+      const p1 = parseFloat(document.getElementById("p1").value);
+      const v1 = parseFloat(document.getElementById("v1").value);
+      const p2 = parseFloat(document.getElementById("p2").value);
+      const v2 = (p1 * v1) / p2;
+      document.getElementById("resultat").innerHTML = `
+        <strong>Formule :</strong> (P1 × V1) / P2 = (${p1} × ${v1}) / ${p2}<br>
+        <strong>V2 :</strong> ${v2.toFixed(2)} L
+      `;
+    }
+  </script>
+</body>
+</html>
